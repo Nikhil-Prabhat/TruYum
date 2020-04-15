@@ -1,0 +1,24 @@
+create database mydata;
+
+use mydata;
+SET SQL_SAFE_UPDATES = 0;
+
+create table menu(
+id int not null auto_increment primary key,
+name varchar(20),
+price float,
+active boolean,
+dateOfLaunch date,
+category varchar(20),
+freeDelivery boolean
+);
+
+insert into menu(name,price,active,dateOfLaunch,category,freeDelivery) values("Sandwich",99.00,true,"2017/03/15","Main Course",true);
+insert into menu(name,price,active,dateOfLaunch,category,freeDelivery) values("Burgar",129.00,true,"2017/12/23","Main Course",false);
+insert into menu(name,price,active,dateOfLaunch,category,freeDelivery) values("Pizza",149.00,true,"2017/08/21","Main Course",false);
+insert into menu(name,price,active,dateOfLaunch,category,freeDelivery) values("French fries",57.00,false,"2017/07/02","Starters",true);
+insert into menu(name,price,active,dateOfLaunch,category,freeDelivery) values("Chocolate Brownie",32.00,true,"2022/11/02","Desserts",true);
+
+create table cart
+(userid long,
+menuitemid long);
