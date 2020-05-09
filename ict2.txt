@@ -1,0 +1,956 @@
+pom.xml
+
+------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+ <modelVersion>4.0.0</modelVersion>
+
+ <parent>
+
+ <groupId>org.springframework.boot</groupId>
+
+ <artifactId>spring-boot-starter-parent</artifactId>
+
+ <version>2.1.8.RELEASE</version>
+
+ <relativePath/> <!-- lookup parent from repository -->
+
+ </parent>
+
+ <groupId>com</groupId>
+
+ <artifactId>TMS</artifactId>
+
+ <version>0.0.1-SNAPSHOT</version>
+
+ <name>TMS</name>
+
+ <description>Demo project for Spring Boot</description>
+
+
+
+ <properties>
+
+ <java.version>1.8</java.version>
+
+ </properties>
+
+
+
+ <dependencies>
+
+ <dependency>
+
+  <groupId>org.springframework.boot</groupId>
+
+  <artifactId>spring-boot-starter</artifactId>
+
+ </dependency>
+
+
+
+
+
+ <dependency>
+
+  <groupId>org.springframework.boot</groupId>
+
+  <artifactId>spring-boot-starter-web</artifactId>
+
+ </dependency>
+
+
+
+  <dependency>
+
+   <groupId>org.apache.tomcat.embed</groupId>
+
+   <artifactId>tomcat-embed-jasper</artifactId>
+
+   <scope>provided</scope>
+
+  </dependency>
+
+  <dependency>
+
+ <groupId>javax.servlet</groupId>
+
+ <artifactId>servlet-api</artifactId>
+
+ <version>2.5</version>
+
+ <scope>provided</scope>
+
+</dependency>
+
+<dependency>
+
+ <groupId>javax.servlet.jsp</groupId>
+
+ <artifactId>jsp-api</artifactId>
+
+ <version>2.1</version>
+
+ <scope>provided</scope>
+
+</dependency>
+
+
+
+<dependency>
+
+ <groupId>taglibs</groupId>
+
+ <artifactId>standard</artifactId>
+
+ <version>1.1.2</version>
+
+</dependency>
+
+<dependency>
+
+ <groupId>javax.servlet</groupId>
+
+ <artifactId>jstl</artifactId>
+
+ <version>1.2</version>
+
+</dependency>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ <dependency>
+
+  <groupId>org.springframework.boot</groupId>
+
+  <artifactId>spring-boot-starter-test</artifactId>
+
+  <scope>test</scope>
+
+  <exclusions>
+
+  <exclusion>
+
+   <groupId>org.junit.vintage</groupId>
+
+   <artifactId>junit-vintage-engine</artifactId>
+
+  </exclusion>
+
+  </exclusions>
+
+ </dependency>
+
+ </dependencies>
+
+
+
+ <build>
+
+ <plugins>
+
+  <plugin>
+
+  <groupId>org.springframework.boot</groupId>
+
+  <artifactId>spring-boot-maven-plugin</artifactId>
+
+  </plugin>
+
+ </plugins>
+
+ </build>
+
+
+
+</project>
+
+
+
+
+
+-----------------------------------------------------------------------------------
+
+InternationalizationConfig.java
+
+-----------------------------------------------------------------------------------
+
+package com.controller;
+
+
+
+import java.util.Locale;
+
+
+
+import org.springframework.context.MessageSource;
+
+import org.springframework.context.annotation.Bean;
+
+import org.springframework.context.annotation.Configuration;
+
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+
+import org.springframework.validation.Validator;
+
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import org.springframework.web.servlet.LocaleResolver;
+
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+
+
+
+@Configuration
+
+public class InternationalizationConfig extends WebMvcConfigurerAdapter {
+
+
+
+ // Create a SessionLocaleResolver object and set the default locale to English
+
+ // return the SessionLocaleResolver object
+
+ @Bean
+
+ public LocaleResolver localeResolver() {
+
+ SessionLocaleResolver slr = new SessionLocaleResolver();
+
+ slr.setDefaultLocale(Locale.ENGLISH);
+
+ return slr;
+
+ }
+
+
+
+ // Create LocaleChangeInterceptor object and set the parameter name as language
+
+ // and return the localeChangeInterceptor
+
+ @Bean
+
+ public LocaleChangeInterceptor localeChangeInterceptor() {
+
+ LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
+
+ lci.setParamName("language");
+
+ return lci;
+
+ }
+
+
+
+ // register the LocaleChangeInterceptor
+
+ @Override
+
+ public void addInterceptors(InterceptorRegistry registry) {
+
+ registry.addInterceptor(localeChangeInterceptor());
+
+
+
+ }
+
+
+
+ @Bean
+
+ public MessageSource messageSource() {
+
+ ReloadableResourceBundleMessageSource bean = new ReloadableResourceBundleMessageSource();
+
+ bean.setBasename("classpath:messages");
+
+ bean.setDefaultEncoding("UTF-8");
+
+ return bean;
+
+ }
+
+
+
+ @Bean
+
+ public LocalValidatorFactoryBean validator() {
+
+ LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
+
+ bean.setValidationMessageSource(messageSource());
+
+ return bean;
+
+ }
+
+
+
+ @Override
+
+ public Validator getValidator() {
+
+ return validator();
+
+ }
+
+}
+
+
+
+------------------------------------------------------------------------------------------------------------------------------
+
+TaxController.java
+
+------------------------------------------------------------------------------------------------------------------------------
+
+package com.controller;
+
+
+
+import java.util.ArrayList;
+
+import java.util.List;
+
+
+
+import javax.validation.Valid;
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.stereotype.Controller;
+
+import org.springframework.ui.Model;
+
+import org.springframework.validation.BindingResult;
+
+import org.springframework.web.bind.annotation.GetMapping;
+
+import org.springframework.web.bind.annotation.ModelAttribute;
+
+
+
+import com.model.UserClaim;
+
+import com.service.TaxService;
+
+
+
+@Controller
+
+public class TaxController {
+
+ @Autowired
+
+ private TaxService taxService;
+
+
+
+ @GetMapping("/getTaxClaimFormPage")
+
+ public String claimPage(Model model) {
+
+ model.addAttribute("userClaim", new UserClaim());
+
+ return "taxclaim";
+
+ }
+
+
+
+ @GetMapping("/calculateTax")
+
+ public String calculateTax(Model model, @Valid UserClaim userClaim, BindingResult result) {
+
+ if (result.hasErrors()) {
+
+  return "taxclaim";
+
+ }
+
+ model.addAttribute("expenseType", userClaim.getExpenseType());
+
+ model.addAttribute("expenseAmount", userClaim.getExpenseAmt());
+
+ model.addAttribute("taxClaimAmount", taxService.calculateTax(userClaim));
+
+ return "result";
+
+ }
+
+
+
+ @ModelAttribute("expenseList")
+
+ public List<String> populateExpense() {
+
+ List<String> expeses = new ArrayList<String>();
+
+ expeses.add("MedicalExpense");
+
+ expeses.add("TravelExpense");
+
+ expeses.add("FoodExpense");
+
+ return expeses;
+
+ }
+
+}
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+
+UserClaim.java
+
+------------------------------------------------------------------------------------------------------------------------
+
+package com.model;
+
+
+
+import javax.validation.constraints.NotEmpty;
+
+import javax.validation.constraints.NotNull;
+
+import javax.validation.constraints.PositiveOrZero;
+
+import javax.validation.constraints.Size;
+
+
+
+public class UserClaim {
+
+
+
+ private String expenseType;
+
+ @NotNull(message = "{error.expenseAmount.numeric}")
+
+ @PositiveOrZero(message = "{error.expenseAmount.negative}")
+
+ private double expenseAmt;
+
+ @NotEmpty(message = "{error.employeeId}")
+
+ @Size(min = 5, message = "{error.employeeId.min}")
+
+ private String employeeId;
+
+
+
+ public String getExpenseType() {
+
+ return expenseType;
+
+ }
+
+
+
+ public void setExpenseType(String expenseType) {
+
+ this.expenseType = expenseType;
+
+ }
+
+
+
+ public double getExpenseAmt() {
+
+ return expenseAmt;
+
+ }
+
+
+
+ public void setExpenseAmt(double expenseAmt) {
+
+ this.expenseAmt = expenseAmt;
+
+ }
+
+
+
+ public String getEmployeeId() {
+
+ return employeeId;
+
+ }
+
+
+
+ public void setEmployeeId(String employeeId) {
+
+ this.employeeId = employeeId;
+
+ }
+
+
+
+}
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+TaxService.java
+
+-----------------------------------------------------------------------------------------------------------------------
+
+package com.service;
+
+import org.springframework.stereotype.Service;
+
+
+
+import com.model.UserClaim;
+
+
+
+@Service
+
+public interface TaxService {
+
+
+
+ public double calculateTax(UserClaim userClaim);
+
+
+
+}
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+TaxServiceImpl.java
+
+-----------------------------------------------------------------------------------------------------------------------
+
+package com.service;
+
+
+
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import org.springframework.stereotype.Service;
+
+
+
+import com.model.UserClaim;
+
+
+
+
+
+@Service
+
+@Qualifier("serviceImpl")
+
+public class TaxServiceImpl implements TaxService {
+
+
+
+ @Override
+
+ public double calculateTax(UserClaim userClaim) {
+
+ double tax = 0.0;
+
+ double expenseAmt = userClaim.getExpenseAmt();
+
+ switch (userClaim.getExpenseType()) {
+
+ case "MedicalExpense": {
+
+  if (expenseAmt <= 1000)
+
+  tax = 0.15;
+
+  else if (expenseAmt <= 10000)
+
+  tax = 0.2;
+
+  else
+
+  tax = 0.25;
+
+  break;
+
+ }
+
+ case "TravelExpense": {
+
+  if (expenseAmt <= 1000)
+
+  tax = 0.1;
+
+  else if (expenseAmt <= 10000)
+
+  tax = 0.15;
+
+  else
+
+  tax = 0.2;
+
+  break;
+
+ }
+
+ default: {
+
+  if (expenseAmt <= 1000)
+
+  tax = 0.05;
+
+  else if (expenseAmt <= 10000)
+
+  tax = 0.1;
+
+  else
+
+  tax = 0.15;
+
+ }
+
+ }
+
+ return tax * expenseAmt;
+
+ }
+
+
+
+}
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+TMSapplication.java
+
+-----------------------------------------------------------------------------------------------------------------------
+
+package com;
+
+
+
+import org.springframework.boot.SpringApplication;
+
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+
+
+@SpringBootApplication
+
+public class TmsApplication {
+
+
+
+ public static void main(String[] args) {
+
+ SpringApplication.run(TmsApplication.class, args);
+
+ }
+
+
+
+}
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+application.properties
+
+-----------------------------------------------------------------------------------------------------------------------
+
+#Do not edit the key server.port.Port number can be changed
+
+#include other needed configurations
+
+server.port=9095
+
+#view Resolver
+
+spring.mvc.view.prefix=/WEB-INF/jsp/
+
+spring.mvc.view.suffix=.jsp
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+messages.properties
+
+-----------------------------------------------------------------------------------------------------------------------
+
+label.employeeId=Employee ID in English
+
+label.expenseType=Expense Type in English
+
+label.expenseAmount=Expense Amount in English
+
+error.employeeId=Employee ID cannot be empty in English
+
+error.expenseAmount=Expense Amount cannot be empty in English
+
+error.expenseAmount.numeric=Expense amount should be numeric only in English
+
+error.expenseAmount.negative=Expense amount should not be a negative number in English
+
+error.employeeId.min=Employee ID should be at least 5 characters in English 
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+messages_de.properties
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+
+label.employeeId=Employee ID in German
+
+label.expenseType=Expense Type in German
+
+label.expenseAmount=Expense Amount in German
+
+error.employeeId=Employee ID cannot be empty in German
+
+error.expenseAmount=Expense Amount cannot be empty in German
+
+error.expenseAmount.numeric=Expense amount should be numeric only in German
+
+error.expenseAmount.negative=Expense amount should not be a negative number in German
+
+error.employeeId.min=Employee ID should be at least 5 characters in German
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+messages_fr.properties
+
+-----------------------------------------------------------------------------------------------------------------------
+
+label.employeeId=Employee ID in French
+
+label.expenseType=Expense Type in French
+
+label.expenseAmount=Expense Amount in French
+
+error.employeeId=Employee ID cannot be empty in French
+
+error.expenseAmount=Expense Amount cannot be empty in French
+
+error.expenseAmount.numeric=Expense amount should be numeric only in French
+
+error.expenseAmount.negative=Expense amount should not be a negative number in French
+
+error.employeeId.min=Employee ID should be at least 5 characters in French
+
+-----------------------------------------------------------------------------------------------------------------------
+
+results.jsp
+
+-----------------------------------------------------------------------------------------------------------------------
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+
+ pageEncoding="ISO-8859-1"%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+<title>Insert title here</title>
+
+</head>
+
+<body>
+
+
+
+
+
+
+
+ <h2>The tax claim for ${expenseType } with expense amount
+
+ ${expenseAmount } is ${taxClaimAmount }</h2>
+
+
+
+</body>
+
+</html>
+
+-----------------------------------------------------------------------------------------------------------------------
+
+taxclaim.jsp
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+
+ pageEncoding="ISO-8859-1" isELIgnored="false"%>
+
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+
+
+<body style="background-color: lavender">
+
+ <h1>
+
+ <center>Tax: Tax Claim</center>
+
+ </h1>
+
+
+
+ <a href="/getTaxClaimFormPage?language=en">English</a>|
+
+ <a href="/getTaxClaimFormPage?language=de">German</a>|
+
+ <a href="/getTaxClaimFormPage?language=fr">French</a>
+
+
+
+ <form:form method="get" modelAttribute="userClaim"
+
+ action="/calculateTax">
+
+
+
+
+
+ <table>
+
+
+
+  <tr>
+
+  <td id="id1"><spring:message code="label.employeeId" /></td>
+
+  <td id="id2"><form:textarea path="employeeId" /></td>
+
+  <td id="id3"><form:errors path="employeeId" /></td>
+
+  </tr>
+
+
+
+  <tr>
+
+  <td id="id4"><spring:message code="label.expenseType" /></td>
+
+  <td id="id5"><form:select path="expenseType">
+
+   <form:options items="${expenseList }" />
+
+   </form:select></td>
+
+  <td id="id6"><form:errors path="expenseType" /></td>
+
+  </tr>
+
+  <tr>
+
+  <td id="id7"><spring:message code="label.expenseAmount" /></td>
+
+  <td id="id8"><form:textarea path="expenseAmt"
+
+   id="expenseAmount" /></td>
+
+  <td id=id9><form:errors path="expenseAmt" /></td>
+
+  </tr>
+
+  <tr>
+
+  <td><input type="Submit" name="submit" value="Calculate Claim" /></td>
+
+  <td></td>
+
+  </tr>
+
+  <tr>
+
+  <td><input type="reset" name="reset" value="Clear" /></td>
+
+  <td></td>
+
+  </tr>
+
+ </table>
+
+ </form:form>
+
+
+
+
+
+</body>
+
+</html>
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
